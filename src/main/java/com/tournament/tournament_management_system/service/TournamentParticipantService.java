@@ -13,16 +13,20 @@ import java.util.List;
 public class TournamentParticipantService {
 
     private final TournamentParticipantRepository repository;
+    private final DataValidationService validationService;
 
     public TournamentParticipantService(
-            TournamentParticipantRepository repository) {
+            TournamentParticipantRepository repository,
+            DataValidationService validationService) {
 
         this.repository = repository;
+        this.validationService = validationService;
     }
 
     public TournamentParticipantResponse registerParticipant(
             RegisterParticipantRequest request) {
 
+        validationService.validateRegistration(request);
         TournamentParticipant registration =
                 new TournamentParticipant();
 

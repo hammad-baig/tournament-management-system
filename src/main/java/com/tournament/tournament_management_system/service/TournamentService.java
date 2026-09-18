@@ -13,14 +13,20 @@ import java.util.Optional;
 public class TournamentService {
 
     private final TournamentRepository tournamentRepository;
+    private final DataValidationService validationService;
 
-    public TournamentService(TournamentRepository tournamentRepository) {
+    public TournamentService(
+            TournamentRepository tournamentRepository,
+            DataValidationService validationService) {
+
         this.tournamentRepository = tournamentRepository;
+        this.validationService = validationService;
     }
 
     public TournamentResponse createTournament(
             CreateTournamentRequest request) {
 
+        validationService.validateTournament(request);
         Tournament tournament = new Tournament();
 
         tournament.setName(request.getName());

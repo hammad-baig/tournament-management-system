@@ -13,14 +13,20 @@ import java.util.Optional;
 public class ParticipantService {
 
     private final ParticipantRepository participantRepository;
+    private final DataValidationService validationService;
 
-    public ParticipantService(ParticipantRepository participantRepository) {
+    public ParticipantService(
+            ParticipantRepository participantRepository,
+            DataValidationService validationService) {
+
         this.participantRepository = participantRepository;
+        this.validationService = validationService;
     }
 
     public ParticipantResponse createParticipant(
             CreateParticipantRequest request) {
 
+        validationService.validateParticipant(request);
         Participant participant = new Participant();
 
         participant.setUserId(request.getUserId());

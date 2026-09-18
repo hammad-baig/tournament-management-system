@@ -14,13 +14,16 @@ public class UserService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final DataValidationService validationService;
 
     public UserService(
             UserRepository userRepository,
-            PasswordEncoder passwordEncoder) {
+            PasswordEncoder passwordEncoder,
+            DataValidationService validationService) {
 
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
+        this.validationService = validationService;
     }
 
     public Optional<UserResponse> findByUsername(String username) {
@@ -30,7 +33,7 @@ public class UserService {
     }
 
     public UserResponse createUser(CreateUserRequest request) {
-
+        validationService.validateUser(request);
         User user = new User();
 
         user.setUsername(request.getUsername());
