@@ -4,6 +4,7 @@ import com.tournament.tournament_management_system.dto.CreateTournamentRequest;
 import com.tournament.tournament_management_system.dto.TournamentResponse;
 import com.tournament.tournament_management_system.model.Tournament;
 import com.tournament.tournament_management_system.repository.TournamentRepository;
+import com.tournament.tournament_management_system.repository.UserRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -14,19 +15,36 @@ public class TournamentService {
 
     private final TournamentRepository tournamentRepository;
     private final DataValidationService validationService;
+    private final UserRepository userRepository;
 
     public TournamentService(
             TournamentRepository tournamentRepository,
+            UserRepository userRepository,
             DataValidationService validationService) {
 
         this.tournamentRepository = tournamentRepository;
+        this.userRepository = userRepository;
         this.validationService = validationService;
     }
 
     public TournamentResponse createTournament(
+            Long id,
             CreateTournamentRequest request) {
 
+        if (!tournamentRepository.existsById(id)) {
+            throw new ResourceNotFoundException(
+                    "Tournament with id " + id + " does not exist"
+            );
+        }
+
         validationService.validateTournament(request);
+
+        if (!userRepository.existsById(request.getCreatedBy())) {
+            throw new ResourceNotFoundException(
+                    "User with id " + request.getCreatedBy()
+                            + " does not exist"
+            );
+        }
         Tournament tournament = new Tournament();
 
         tournament.setName(request.getName());
@@ -74,7 +92,11 @@ public class TournamentService {
     }
 
     public boolean deleteTournament(Long id) {
-
+        if (!tournamentRepository.existsById(id)) {
+            throw new ResourceNotFoundException(
+                    "Tournament with id " + id + " does not exist"
+            );
+        }
         return tournamentRepository.deleteTournament(id);
     }
 

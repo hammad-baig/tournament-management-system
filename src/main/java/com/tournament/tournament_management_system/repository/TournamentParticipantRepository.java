@@ -163,6 +163,43 @@ public class TournamentParticipantRepository {
         }
     }
 
+    public Optional<TournamentParticipant> reactivateRegistration(
+            Long tournamentId,
+            Long participantId) {
+
+        String sql = """
+            UPDATE tournament_participants
+            SET status = 'REGISTERED'
+            WHERE tournament_id = ?
+              AND participant_id = ?
+            RETURNING tournament_id, participant_id,
+                      registered_at, status
+            """;
+
+        try (
+                Connection connection = dataSource.getConnection();
+                PreparedStatement statement = connection.prepareStatement(sql)
+        ) {
+            statement.setLong(1, tournamentId);
+            statement.setLong(2, participantId);
+
+            try (ResultSet resultSet = statement.executeQuery()) {
+
+                if (resultSet.next()) {
+                    return Optional.of(mapRegistration(resultSet));
+                }
+
+                return Optional.empty();
+            }
+
+        } catch (SQLException exception) {
+            throw new TournamentParticipantRepositoryException(
+                    "Failed to reactivate registration",
+                    exception
+            );
+        }
+    }
+
     private TournamentParticipant mapRegistration(
             ResultSet resultSet) throws SQLException {
 

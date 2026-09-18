@@ -182,6 +182,39 @@ public class TournamentRepository {
         }
     }
 
+    public boolean existsById(Long id) {
+
+        String sql = """
+            SELECT EXISTS(
+                SELECT 1
+                FROM tournaments
+                WHERE id = ?
+            )
+            """;
+
+        try (
+                Connection connection = dataSource.getConnection();
+                PreparedStatement statement = connection.prepareStatement(sql)
+        ) {
+            statement.setLong(1, id);
+
+            try (ResultSet resultSet = statement.executeQuery()) {
+
+                if (resultSet.next()) {
+                    return resultSet.getBoolean(1);
+                }
+
+                return false;
+            }
+
+        } catch (SQLException exception) {
+            throw new TournamentRepositoryException(
+                    "Failed to check whether tournament exists",
+                    exception
+            );
+        }
+    }
+
     public boolean deleteTournament(Long id) {
 
         String sql = """

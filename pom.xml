@@ -38,11 +38,11 @@
             <scope>test</scope>
         </dependency>
 
-<!--&lt;!&ndash;        spring security&ndash;&gt;-->
-<!--        <dependency>-->
-<!--            <groupId>org.springframework.boot</groupId>-->
-<!--            <artifactId>spring-boot-starter-security</artifactId>-->
-<!--        </dependency>-->
+<!--        spring security-->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-security</artifactId>
+        </dependency>
 
 <!--        jdbc-->
         <dependency>

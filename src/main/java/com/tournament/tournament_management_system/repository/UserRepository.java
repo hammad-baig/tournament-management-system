@@ -95,6 +95,105 @@ public class UserRepository {
         }
     }
 
+    public boolean existsById(Long id) {
+
+        String sql = """
+            SELECT EXISTS(
+                SELECT 1
+                FROM users
+                WHERE id = ?
+            )
+            """;
+
+        try (
+                Connection connection = dataSource.getConnection();
+                PreparedStatement statement = connection.prepareStatement(sql)
+        ) {
+            statement.setLong(1, id);
+
+            try (ResultSet resultSet = statement.executeQuery()) {
+
+                if (resultSet.next()) {
+                    return resultSet.getBoolean(1);
+                }
+
+                return false;
+            }
+
+        } catch (SQLException exception) {
+            throw new UserRepositoryException(
+                    "Failed to check whether user exists",
+                    exception
+            );
+        }
+    }
+
+    public boolean existsByUsername(String username) {
+
+        String sql = """
+            SELECT EXISTS(
+                SELECT 1
+                FROM users
+                WHERE username = ?
+            )
+            """;
+
+        try (
+                Connection connection = dataSource.getConnection();
+                PreparedStatement statement = connection.prepareStatement(sql)
+        ) {
+            statement.setString(1, username);
+
+            try (ResultSet resultSet = statement.executeQuery()) {
+
+                if (resultSet.next()) {
+                    return resultSet.getBoolean(1);
+                }
+
+                return false;
+            }
+
+        } catch (SQLException exception) {
+            throw new UserRepositoryException(
+                    "Failed to check username",
+                    exception
+            );
+        }
+    }
+
+    public boolean existsByEmail(String email) {
+
+        String sql = """
+            SELECT EXISTS(
+                SELECT 1
+                FROM users
+                WHERE email = ?
+            )
+            """;
+
+        try (
+                Connection connection = dataSource.getConnection();
+                PreparedStatement statement = connection.prepareStatement(sql)
+        ) {
+            statement.setString(1, email);
+
+            try (ResultSet resultSet = statement.executeQuery()) {
+
+                if (resultSet.next()) {
+                    return resultSet.getBoolean(1);
+                }
+
+                return false;
+            }
+
+        } catch (SQLException exception) {
+            throw new UserRepositoryException(
+                    "Failed to check email",
+                    exception
+            );
+        }
+    }
+
     private User mapUser(ResultSet resultSet) throws SQLException {
 
         User user = new User();

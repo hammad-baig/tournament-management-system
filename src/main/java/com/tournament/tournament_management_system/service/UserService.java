@@ -33,7 +33,20 @@ public class UserService {
     }
 
     public UserResponse createUser(CreateUserRequest request) {
+
         validationService.validateUser(request);
+        if (userRepository.existsByUsername(request.getUsername())) {
+            throw new ConflictException(
+                    "Username already exists"
+            );
+        }
+
+        if (userRepository.existsByEmail(request.getEmail())) {
+            throw new ConflictException(
+                    "Email already exists"
+            );
+        }
+
         User user = new User();
 
         user.setUsername(request.getUsername());

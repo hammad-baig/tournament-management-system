@@ -23,12 +23,11 @@ public class TournamentController {
     public ResponseEntity<TournamentResponse> createTournament(
             @RequestBody CreateTournamentRequest request) {
 
-        TournamentResponse response =
-                tournamentService.createTournament(request);
-
-        return ResponseEntity
-                .status(HttpStatus.CREATED)
-                .body(response);
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(tournamentService.createTournament(
+                        request.getCreatedBy(),
+                        request
+                ));
     }
 
     @GetMapping("/{id}")

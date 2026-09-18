@@ -126,6 +126,72 @@ public class ParticipantRepository {
         }
     }
 
+    public boolean existsById(Long id) {
+
+        String sql = """
+            SELECT EXISTS(
+                SELECT 1
+                FROM participants
+                WHERE id = ?
+            )
+            """;
+
+        try (
+                Connection connection = dataSource.getConnection();
+                PreparedStatement statement = connection.prepareStatement(sql)
+        ) {
+            statement.setLong(1, id);
+
+            try (ResultSet resultSet = statement.executeQuery()) {
+
+                if (resultSet.next()) {
+                    return resultSet.getBoolean(1);
+                }
+
+                return false;
+            }
+
+        } catch (SQLException exception) {
+            throw new ParticipantRepositoryException(
+                    "Failed to check whether participant exists",
+                    exception
+            );
+        }
+    }
+
+    public boolean existsByUserId(Long userId) {
+
+        String sql = """
+            SELECT EXISTS(
+                SELECT 1
+                FROM participants
+                WHERE user_id = ?
+            )
+            """;
+
+        try (
+                Connection connection = dataSource.getConnection();
+                PreparedStatement statement = connection.prepareStatement(sql)
+        ) {
+            statement.setLong(1, userId);
+
+            try (ResultSet resultSet = statement.executeQuery()) {
+
+                if (resultSet.next()) {
+                    return resultSet.getBoolean(1);
+                }
+
+                return false;
+            }
+
+        } catch (SQLException exception) {
+            throw new ParticipantRepositoryException(
+                    "Failed to check participant profile",
+                    exception
+            );
+        }
+    }
+
     public Optional<Participant> updateParticipant(
             Long id,
             Participant participant

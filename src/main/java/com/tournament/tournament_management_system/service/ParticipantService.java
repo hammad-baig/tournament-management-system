@@ -1,5 +1,8 @@
 package com.tournament.tournament_management_system.service;
 
+import com.tournament.tournament_management_system.repository.UserRepository;
+import com.tournament.tournament_management_system.service.ConflictException;
+import com.tournament.tournament_management_system.service.ResourceNotFoundException;
 import com.tournament.tournament_management_system.dto.CreateParticipantRequest;
 import com.tournament.tournament_management_system.dto.ParticipantResponse;
 import com.tournament.tournament_management_system.model.Participant;
@@ -14,12 +17,15 @@ public class ParticipantService {
 
     private final ParticipantRepository participantRepository;
     private final DataValidationService validationService;
+    private final UserRepository userRepository;
 
     public ParticipantService(
             ParticipantRepository participantRepository,
+            UserRepository userRepository,
             DataValidationService validationService) {
 
         this.participantRepository = participantRepository;
+        this.userRepository = userRepository;
         this.validationService = validationService;
     }
 
@@ -27,6 +33,19 @@ public class ParticipantService {
             CreateParticipantRequest request) {
 
         validationService.validateParticipant(request);
+
+        if (!userRepository.existsById(request.getUserId())) {
+            throw new ResourceNotFoundException(
+                    "User with id " + request.getUserId()
+                            + " does not exist"
+            );
+        }
+
+        if (participantRepository.existsByUserId(request.getUserId())) {
+            throw new ConflictException(
+                    "User already has a participant profile"
+            );
+        }
         Participant participant = new Participant();
 
         participant.setUserId(request.getUserId());
@@ -58,6 +77,11 @@ public class ParticipantService {
             Long id,
             CreateParticipantRequest request) {
 
+        if (!participantRepository.existsById(id)) {
+            throw new ResourceNotFoundException(
+                    "Participant with id " + id + " does not exist"
+            );
+        }
         Participant participant = new Participant();
 
         participant.setDisplayName(request.getDisplayName());
@@ -71,6 +95,11 @@ public class ParticipantService {
 
     public boolean deleteParticipant(Long id) {
 
+        if (!participantRepository.existsById(id)) {
+            throw new ResourceNotFoundException(
+                    "Participant with id " + id + " does not exist"
+            );
+        }
         return participantRepository.deleteParticipant(id);
     }
 
