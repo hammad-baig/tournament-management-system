@@ -53,6 +53,48 @@ public class UserRepository {
         }
     }
 
+    public User createUser(User user) {
+
+        String sql = """
+            INSERT INTO users (
+                username,
+                email,
+                password_hash,
+                role
+            )
+            VALUES (?, ?, ?, ?)
+            RETURNING id, username, email, password_hash, role, created_at
+            """;
+
+        try (
+                Connection connection = dataSource.getConnection();
+                PreparedStatement statement = connection.prepareStatement(sql)
+        ) {
+            statement.setString(1, user.getUsername());
+            statement.setString(2, user.getEmail());
+            statement.setString(3, user.getPasswordHash());
+            statement.setString(4, user.getRole().name());
+
+            try (ResultSet resultSet = statement.executeQuery()) {
+
+                if (resultSet.next()) {
+                    return mapUser(resultSet);
+                }
+
+                throw new UserRepositoryException(
+                        "Failed to create user",
+                        null
+                );
+            }
+
+        } catch (SQLException exception) {
+            throw new UserRepositoryException(
+                    "Failed to create user",
+                    exception
+            );
+        }
+    }
+
     private User mapUser(ResultSet resultSet) throws SQLException {
 
         User user = new User();

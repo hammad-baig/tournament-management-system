@@ -1,7 +1,9 @@
 package com.tournament.tournament_management_system.controller;
 
-import com.tournament.tournament_management_system.model.User;
+import com.tournament.tournament_management_system.dto.CreateUserRequest;
+import com.tournament.tournament_management_system.dto.UserResponse;
 import com.tournament.tournament_management_system.service.UserService;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -16,7 +18,7 @@ public class UserController {
     }
 
     @GetMapping("/{username}")
-    public ResponseEntity<User> getUserByUsername(
+    public ResponseEntity<UserResponse> getUserByUsername(
             @PathVariable String username) {
 
         return userService.findByUsername(username)
@@ -24,4 +26,12 @@ public class UserController {
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
+    @PostMapping
+    public ResponseEntity<UserResponse> createUser(
+            @RequestBody CreateUserRequest request) {
+
+        UserResponse response = userService.createUser(request);
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
 }
