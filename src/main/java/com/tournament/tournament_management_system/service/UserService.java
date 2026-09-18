@@ -4,6 +4,7 @@ import com.tournament.tournament_management_system.dto.CreateUserRequest;
 import com.tournament.tournament_management_system.model.User;
 import com.tournament.tournament_management_system.dto.UserResponse;
 import com.tournament.tournament_management_system.repository.UserRepository;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
@@ -12,9 +13,14 @@ import java.util.Optional;
 public class UserService {
 
     private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
 
-    public UserService(UserRepository userRepository) {
+    public UserService(
+            UserRepository userRepository,
+            PasswordEncoder passwordEncoder) {
+
         this.userRepository = userRepository;
+        this.passwordEncoder = passwordEncoder;
     }
 
     public Optional<UserResponse> findByUsername(String username) {
@@ -30,9 +36,9 @@ public class UserService {
         user.setUsername(request.getUsername());
         user.setEmail(request.getEmail());
 
-        // Temporary for now.
-        // Password hashing will be handled when we implement Spring Security.
-        user.setPasswordHash(request.getPassword());
+        user.setPasswordHash(
+                passwordEncoder.encode(request.getPassword())
+        );
 
         user.setRole(request.getRole());
 
