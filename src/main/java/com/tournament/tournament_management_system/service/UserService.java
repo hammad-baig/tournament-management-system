@@ -1,8 +1,9 @@
 package com.tournament.tournament_management_system.service;
 
 import com.tournament.tournament_management_system.dto.CreateUserRequest;
-import com.tournament.tournament_management_system.model.User;
 import com.tournament.tournament_management_system.dto.UserResponse;
+import com.tournament.tournament_management_system.model.User;
+import com.tournament.tournament_management_system.model.UserRole;
 import com.tournament.tournament_management_system.repository.UserRepository;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -35,6 +36,7 @@ public class UserService {
     public UserResponse createUser(CreateUserRequest request) {
 
         validationService.validateUser(request);
+
         if (userRepository.existsByUsername(request.getUsername())) {
             throw new ConflictException(
                     "Username already exists"
@@ -56,7 +58,8 @@ public class UserService {
                 passwordEncoder.encode(request.getPassword())
         );
 
-        user.setRole(request.getRole());
+        // New users are always created as participants.
+        user.setRole(UserRole.PARTICIPANT);
 
         User savedUser = userRepository.createUser(user);
 

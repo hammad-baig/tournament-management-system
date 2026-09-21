@@ -63,10 +63,6 @@ public class DataValidationService {
                     "Password must not exceed 100 characters"
             );
         }
-
-        if (request.getRole() == null) {
-            throw new ValidationException("Role is required");
-        }
     }
 
     public void validateTournament(

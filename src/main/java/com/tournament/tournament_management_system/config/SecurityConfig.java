@@ -90,6 +90,13 @@ public class SecurityConfig {
                         )
                         .hasRole("ORGANIZER")
 
+                        // Viewing tournament participants → ORGANIZER only
+                        .requestMatchers(
+                                HttpMethod.GET,
+                                "/api/tournaments/*/participants"
+                        )
+                        .hasRole("ORGANIZER")
+
                         // Everything else requires authentication
                         .anyRequest()
                         .authenticated()
