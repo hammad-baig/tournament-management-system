@@ -3,6 +3,7 @@ package com.tournament.tournament_management_system.service;
 import com.tournament.tournament_management_system.dto.CreateTournamentRequest;
 import com.tournament.tournament_management_system.dto.TournamentResponse;
 import com.tournament.tournament_management_system.model.Tournament;
+import com.tournament.tournament_management_system.model.User;
 import com.tournament.tournament_management_system.repository.TournamentRepository;
 import com.tournament.tournament_management_system.repository.UserRepository;
 import org.springframework.stereotype.Service;
@@ -28,23 +29,21 @@ public class TournamentService {
     }
 
     public TournamentResponse createTournament(
-            Long id,
-            CreateTournamentRequest request) {
-
-        if (!tournamentRepository.existsById(id)) {
-            throw new ResourceNotFoundException(
-                    "Tournament with id " + id + " does not exist"
-            );
-        }
+            CreateTournamentRequest request,
+            String username) {
 
         validationService.validateTournament(request);
 
-        if (!userRepository.existsById(request.getCreatedBy())) {
-            throw new ResourceNotFoundException(
-                    "User with id " + request.getCreatedBy()
-                            + " does not exist"
-            );
-        }
+        User user = userRepository
+                .findByUsername(username)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException(
+                                "User with username "
+                                        + username
+                                        + " does not exist"
+                        )
+                );
+
         Tournament tournament = new Tournament();
 
         tournament.setName(request.getName());
@@ -52,7 +51,8 @@ public class TournamentService {
         tournament.setStartDate(request.getStartDate());
         tournament.setLocation(request.getLocation());
         tournament.setStatus(request.getStatus());
-        tournament.setCreatedBy(request.getCreatedBy());
+
+        tournament.setCreatedBy(user.getId());
 
         Tournament savedTournament =
                 tournamentRepository.createTournament(tournament);
@@ -92,11 +92,13 @@ public class TournamentService {
     }
 
     public boolean deleteTournament(Long id) {
+
         if (!tournamentRepository.existsById(id)) {
             throw new ResourceNotFoundException(
                     "Tournament with id " + id + " does not exist"
             );
         }
+
         return tournamentRepository.deleteTournament(id);
     }
 

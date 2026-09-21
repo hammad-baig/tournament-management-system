@@ -11,7 +11,6 @@ public class CreateTournamentRequest {
     private LocalDateTime startDate;
     private String location;
     private TournamentStatus status;
-    private Long createdBy;
 
     public String getName() {
         return name;
@@ -51,13 +50,5 @@ public class CreateTournamentRequest {
 
     public void setStatus(TournamentStatus status) {
         this.status = status;
-    }
-
-    public Long getCreatedBy() {
-        return createdBy;
-    }
-
-    public void setCreatedBy(Long createdBy) {
-        this.createdBy = createdBy;
     }
 }

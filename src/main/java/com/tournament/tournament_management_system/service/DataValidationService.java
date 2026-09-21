@@ -117,11 +117,6 @@ public class DataValidationService {
                     "Tournament status is required"
             );
         }
-
-        validatePositiveId(
-                request.getCreatedBy(),
-                "Created by"
-        );
     }
 
     public void validateParticipant(

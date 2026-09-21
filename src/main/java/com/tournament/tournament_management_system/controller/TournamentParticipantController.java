@@ -56,15 +56,16 @@ public class TournamentParticipantController {
         );
     }
 
-    @DeleteMapping("/{tournamentId}/participants/{participantId}")
+    @DeleteMapping("/{tournamentId}/participants")
     public ResponseEntity<Void> withdrawParticipant(
-            @PathVariable Long tournamentId,
-            @PathVariable Long participantId) {
+            @PathVariable Long tournamentId) {
+
+        String username = getAuthenticatedUsername();
 
         boolean withdrawn =
                 service.withdrawParticipant(
                         tournamentId,
-                        participantId
+                        username
                 );
 
         if (withdrawn) {

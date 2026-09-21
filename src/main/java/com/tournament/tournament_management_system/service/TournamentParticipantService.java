@@ -136,7 +136,7 @@ public class TournamentParticipantService {
 
     public boolean withdrawParticipant(
             Long tournamentId,
-            Long participantId) {
+            String username) {
 
         if (tournamentId == null || tournamentId <= 0) {
             throw new ValidationException(
@@ -144,11 +144,26 @@ public class TournamentParticipantService {
             );
         }
 
-        if (participantId == null || participantId <= 0) {
-            throw new ValidationException(
-                    "Participant ID must be greater than 0"
-            );
-        }
+        User user = userRepository
+                .findByUsername(username)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException(
+                                "User with username "
+                                        + username
+                                        + " does not exist"
+                        )
+                );
+
+        Participant participant =
+                participantRepository
+                        .findById(user.getId())
+                        .orElseThrow(() ->
+                                new ResourceNotFoundException(
+                                        "Authenticated user does not have a participant profile"
+                                )
+                        );
+
+        Long participantId = participant.getId();
 
         TournamentParticipant registration =
                 repository.findRegistration(
