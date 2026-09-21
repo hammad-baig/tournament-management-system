@@ -1,12 +1,11 @@
 package com.tournament.tournament_management_system.service;
 
-import com.tournament.tournament_management_system.repository.UserRepository;
-import com.tournament.tournament_management_system.service.ConflictException;
-import com.tournament.tournament_management_system.service.ResourceNotFoundException;
 import com.tournament.tournament_management_system.dto.CreateParticipantRequest;
 import com.tournament.tournament_management_system.dto.ParticipantResponse;
 import com.tournament.tournament_management_system.model.Participant;
+import com.tournament.tournament_management_system.model.User;
 import com.tournament.tournament_management_system.repository.ParticipantRepository;
+import com.tournament.tournament_management_system.repository.UserRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -29,26 +28,30 @@ public class ParticipantService {
         this.validationService = validationService;
     }
 
-    public ParticipantResponse createParticipant(
-            CreateParticipantRequest request) {
+    public ParticipantResponse createParticipantForUser(
+            CreateParticipantRequest request,
+            String username) {
 
         validationService.validateParticipant(request);
 
-        if (!userRepository.existsById(request.getUserId())) {
-            throw new ResourceNotFoundException(
-                    "User with id " + request.getUserId()
-                            + " does not exist"
-            );
-        }
+        var user = userRepository
+                .findByUsername(username)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException(
+                                "User with username " + username
+                                        + " does not exist"
+                        )
+                );
 
-        if (participantRepository.existsByUserId(request.getUserId())) {
+        if (participantRepository.existsByUserId(user.getId())) {
             throw new ConflictException(
                     "User already has a participant profile"
             );
         }
+
         Participant participant = new Participant();
 
-        participant.setUserId(request.getUserId());
+        participant.setUserId(user.getId());
         participant.setDisplayName(request.getDisplayName());
         participant.setRating(request.getRating());
         participant.setCountry(request.getCountry());
@@ -82,6 +85,7 @@ public class ParticipantService {
                     "Participant with id " + id + " does not exist"
             );
         }
+
         Participant participant = new Participant();
 
         participant.setDisplayName(request.getDisplayName());
@@ -101,6 +105,38 @@ public class ParticipantService {
             );
         }
         return participantRepository.deleteParticipant(id);
+    }
+
+    /*
+     * Checks whether a participant belongs to
+     * the currently authenticated user.
+     */
+    public boolean isOwner(
+            Long participantId,
+            String username) {
+
+        Participant participant =
+                participantRepository.findById(participantId)
+                        .orElseThrow(() ->
+                                new ResourceNotFoundException(
+                                        "Participant with id "
+                                                + participantId
+                                                + " does not exist"
+                                )
+                        );
+
+        User user = userRepository
+                .findByUsername(username)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException(
+                                "User with username "
+                                        + username
+                                        + " does not exist"
+                        )
+                );
+
+        return participant.getUserId()
+                .equals(user.getId());
     }
 
     private ParticipantResponse toParticipantResponse(

@@ -2,18 +2,9 @@ package com.tournament.tournament_management_system.dto;
 
 public class CreateParticipantRequest {
 
-    private Long userId;
     private String displayName;
     private Integer rating;
     private String country;
-
-    public Long getUserId() {
-        return userId;
-    }
-
-    public void setUserId(Long userId) {
-        this.userId = userId;
-    }
 
     public String getDisplayName() {
         return displayName;
