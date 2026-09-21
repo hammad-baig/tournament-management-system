@@ -2,11 +2,14 @@ package com.tournament.tournament_management_system.service;
 
 import com.tournament.tournament_management_system.dto.RegisterParticipantRequest;
 import com.tournament.tournament_management_system.dto.TournamentParticipantResponse;
-import com.tournament.tournament_management_system.model.RegistrationStatus;
+import com.tournament.tournament_management_system.model.Participant;
 import com.tournament.tournament_management_system.model.TournamentParticipant;
+import com.tournament.tournament_management_system.model.RegistrationStatus;
+import com.tournament.tournament_management_system.model.User;
 import com.tournament.tournament_management_system.repository.ParticipantRepository;
 import com.tournament.tournament_management_system.repository.TournamentParticipantRepository;
 import com.tournament.tournament_management_system.repository.TournamentRepository;
+import com.tournament.tournament_management_system.repository.UserRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -17,22 +20,26 @@ public class TournamentParticipantService {
     private final TournamentParticipantRepository repository;
     private final TournamentRepository tournamentRepository;
     private final ParticipantRepository participantRepository;
+    private final UserRepository userRepository;
     private final DataValidationService validationService;
 
     public TournamentParticipantService(
             TournamentParticipantRepository repository,
             TournamentRepository tournamentRepository,
             ParticipantRepository participantRepository,
+            UserRepository userRepository,
             DataValidationService validationService) {
 
         this.repository = repository;
         this.tournamentRepository = tournamentRepository;
         this.participantRepository = participantRepository;
+        this.userRepository = userRepository;
         this.validationService = validationService;
     }
 
     public TournamentParticipantResponse registerParticipant(
-            RegisterParticipantRequest request) {
+            RegisterParticipantRequest request,
+            String username) {
 
         validationService.validateRegistration(request);
 
@@ -46,20 +53,31 @@ public class TournamentParticipantService {
             );
         }
 
-        if (!participantRepository.existsById(
-                request.getParticipantId())) {
+        User user = userRepository
+                .findByUsername(username)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException(
+                                "User with username "
+                                        + username
+                                        + " does not exist"
+                        )
+                );
 
-            throw new ResourceNotFoundException(
-                    "Participant with id "
-                            + request.getParticipantId()
-                            + " does not exist"
-            );
-        }
+        Participant participant =
+                participantRepository
+                        .findById(user.getId())
+                        .orElseThrow(() ->
+                                new ResourceNotFoundException(
+                                        "Authenticated user does not have a participant profile"
+                                )
+                        );
+
+        Long participantId = participant.getId();
 
         var existingRegistration =
                 repository.findRegistration(
                         request.getTournamentId(),
-                        request.getParticipantId()
+                        participantId
                 );
 
         if (existingRegistration.isPresent()) {
@@ -77,7 +95,7 @@ public class TournamentParticipantService {
 
             return repository.reactivateRegistration(
                             request.getTournamentId(),
-                            request.getParticipantId()
+                            participantId
                     )
                     .map(this::toResponse)
                     .orElseThrow(() ->
@@ -95,7 +113,7 @@ public class TournamentParticipantService {
         );
 
         registration.setParticipantId(
-                request.getParticipantId()
+                participantId
         );
 
         registration.setStatus(
@@ -180,18 +198,5 @@ public class TournamentParticipantService {
         );
 
         return response;
-    }
-
-    private TournamentParticipant createRegistration(
-            RegisterParticipantRequest request) {
-
-        TournamentParticipant registration =
-                new TournamentParticipant();
-
-        registration.setTournamentId(request.getTournamentId());
-        registration.setParticipantId(request.getParticipantId());
-        registration.setStatus(RegistrationStatus.REGISTERED);
-
-        return registration;
     }
 }

@@ -5,6 +5,8 @@ import com.tournament.tournament_management_system.dto.TournamentParticipantResp
 import com.tournament.tournament_management_system.service.TournamentParticipantService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -21,20 +23,23 @@ public class TournamentParticipantController {
         this.service = service;
     }
 
-    @PostMapping("/{tournamentId}/participants/{participantId}")
+    @PostMapping("/{tournamentId}/participants")
     public ResponseEntity<TournamentParticipantResponse>
     registerParticipant(
-            @PathVariable Long tournamentId,
-            @PathVariable Long participantId) {
+            @PathVariable Long tournamentId) {
 
         RegisterParticipantRequest request =
                 new RegisterParticipantRequest();
 
         request.setTournamentId(tournamentId);
-        request.setParticipantId(participantId);
+
+        String username = getAuthenticatedUsername();
 
         TournamentParticipantResponse response =
-                service.registerParticipant(request);
+                service.registerParticipant(
+                        request,
+                        username
+                );
 
         return ResponseEntity
                 .status(HttpStatus.CREATED)
@@ -67,5 +72,15 @@ public class TournamentParticipantController {
         }
 
         return ResponseEntity.notFound().build();
+    }
+
+    private String getAuthenticatedUsername() {
+
+        Authentication authentication =
+                SecurityContextHolder
+                        .getContext()
+                        .getAuthentication();
+
+        return authentication.getName();
     }
 }

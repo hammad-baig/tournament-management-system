@@ -133,11 +133,6 @@ public class DataValidationService {
             );
         }
 
-        validatePositiveId(
-                request.getUserId(),
-                "User ID"
-        );
-
         validateRequiredText(
                 request.getDisplayName(),
                 "Display name",
@@ -178,11 +173,6 @@ public class DataValidationService {
         validatePositiveId(
                 request.getTournamentId(),
                 "Tournament ID"
-        );
-
-        validatePositiveId(
-                request.getParticipantId(),
-                "Participant ID"
         );
     }
 

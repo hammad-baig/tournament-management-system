@@ -60,28 +60,33 @@ public class SecurityConfig {
 
                 .authorizeHttpRequests(auth -> auth
 
-                        // Login/register endpoints are public
+                        // Login is publicly accessible
                         .requestMatchers("/api/auth/**")
                         .permitAll()
 
-                        // Only ORGANIZER can create tournaments
+                        // Tournament management → ORGANIZER only
                         .requestMatchers(
                                 HttpMethod.POST,
                                 "/api/tournaments"
                         )
                         .hasRole("ORGANIZER")
 
-                        // Only ORGANIZER can update tournaments
                         .requestMatchers(
                                 HttpMethod.PUT,
                                 "/api/tournaments/**"
                         )
                         .hasRole("ORGANIZER")
 
-                        // Only ORGANIZER can delete tournaments
                         .requestMatchers(
                                 HttpMethod.DELETE,
                                 "/api/tournaments/**"
+                        )
+                        .hasRole("ORGANIZER")
+
+                        // Viewing all participants → ORGANIZER only
+                        .requestMatchers(
+                                HttpMethod.GET,
+                                "/api/participants"
                         )
                         .hasRole("ORGANIZER")
 
