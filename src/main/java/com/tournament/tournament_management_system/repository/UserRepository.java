@@ -24,28 +24,64 @@ public class UserRepository {
     public Optional<User> findByUsername(String username) {
 
         String sql = """
-            SELECT id, username, email, password_hash, role, created_at
-            FROM public.users
-            WHERE username = ?
-            """;
+        SELECT id, username, email, password_hash, role, created_at
+        FROM public.users
+        WHERE username = ?
+        """;
 
         try (
                 Connection connection = dataSource.getConnection();
                 PreparedStatement statement = connection.prepareStatement(sql)
         ) {
+
+            System.out.println("🔥 Database URL: "
+                    + connection.getMetaData().getURL());
+
+            System.out.println("🔥 Database: "
+                    + connection.getCatalog());
+
+            System.out.println("🔥 Username parameter: ["
+                    + username + "]");
+
+            // Temporary diagnostic query
+            try (
+                    PreparedStatement debugStatement =
+                            connection.prepareStatement(
+                                    "SELECT username FROM public.users"
+                            );
+                    ResultSet debugResult =
+                            debugStatement.executeQuery()
+            ) {
+
+                System.out.println("🔥 USERS SEEN BY SPRING:");
+
+                while (debugResult.next()) {
+                    System.out.println(
+                            "   → [" + debugResult.getString("username") + "]"
+                    );
+                }
+            }
+
             statement.setString(1, username);
 
             try (ResultSet resultSet = statement.executeQuery()) {
 
                 if (resultSet.next()) {
+
+                    System.out.println("✅ USER FOUND BY SQL QUERY");
+
                     User user = mapUser(resultSet);
+
                     return Optional.of(user);
                 }
+
+                System.out.println("❌ SQL QUERY RETURNED NO USER");
 
                 return Optional.empty();
             }
 
         } catch (SQLException exception) {
+
             throw new UserRepositoryException(
                     "Failed to find user by username",
                     exception

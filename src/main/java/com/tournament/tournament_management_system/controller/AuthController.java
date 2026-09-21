@@ -1,6 +1,7 @@
 package com.tournament.tournament_management_system.controller;
 
 import com.tournament.tournament_management_system.dto.LoginRequest;
+import com.tournament.tournament_management_system.service.JwtService;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -11,36 +12,33 @@ import org.springframework.web.bind.annotation.*;
 public class AuthController {
 
     private final AuthenticationManager authenticationManager;
+    private final JwtService jwtService;
 
-    public AuthController(AuthenticationManager authenticationManager) {
+    public AuthController(
+            AuthenticationManager authenticationManager,
+            JwtService jwtService) {
+
         this.authenticationManager = authenticationManager;
+        this.jwtService = jwtService;
     }
 
     @PostMapping("/login")
     public String login(@RequestBody LoginRequest request) {
 
-        System.out.println("🔥 LOGIN ENDPOINT REACHED");
+        Authentication authentication =
+                authenticationManager.authenticate(
+                        new UsernamePasswordAuthenticationToken(
+                                request.getUsername(),
+                                request.getPassword()
+                        )
+                );
 
-        try {
-            Authentication authentication =
-                    authenticationManager.authenticate(
-                            new UsernamePasswordAuthenticationToken(
-                                    request.getUsername(),
-                                    request.getPassword()
-                            )
-                    );
-
-            System.out.println("🔥 AUTHENTICATION SUCCESSFUL");
-
-            return "Login successful for: " + authentication.getName();
-
-        } catch (Exception exception) {
-
-            System.out.println("🔥 AUTHENTICATION FAILED");
-            System.out.println("Exception: " + exception.getClass().getName());
-            System.out.println("Message: " + exception.getMessage());
-
-            throw exception;
-        }
+        return jwtService.generateToken(
+                authentication.getName(),
+                authentication.getAuthorities()
+                        .iterator()
+                        .next()
+                        .getAuthority()
+        );
     }
 }
