@@ -1,19 +1,18 @@
 package com.tournament.tournament_management_system.config;
 
-import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import com.tournament.tournament_management_system.service.CustomUserDetailsService;
-import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @Configuration
 public class SecurityConfig {
@@ -41,33 +40,56 @@ public class SecurityConfig {
     public AuthenticationManager authenticationManager(
             AuthenticationProvider authenticationProvider) {
 
-        return new AuthenticationManager() {
-
-            @Override
-            public org.springframework.security.core.Authentication authenticate(
-                    org.springframework.security.core.Authentication authentication) {
-
-                return authenticationProvider.authenticate(authentication);
-            }
-        };
+        return authenticationProvider::authenticate;
     }
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http,
-                                                   JwtAuthenticationFilter jwtAuthenticationFilter)
+    public SecurityFilterChain securityFilterChain(
+            HttpSecurity http,
+            JwtAuthenticationFilter jwtAuthenticationFilter)
             throws Exception {
 
         http
                 .csrf(csrf -> csrf.disable())
+
                 .sessionManagement(session ->
                         session.sessionCreationPolicy(
                                 SessionCreationPolicy.STATELESS
                         )
                 )
+
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/auth/**").permitAll()
-                        .anyRequest().authenticated()
+
+                        // Login/register endpoints are public
+                        .requestMatchers("/api/auth/**")
+                        .permitAll()
+
+                        // Only ORGANIZER can create tournaments
+                        .requestMatchers(
+                                HttpMethod.POST,
+                                "/api/tournaments"
+                        )
+                        .hasRole("ORGANIZER")
+
+                        // Only ORGANIZER can update tournaments
+                        .requestMatchers(
+                                HttpMethod.PUT,
+                                "/api/tournaments/**"
+                        )
+                        .hasRole("ORGANIZER")
+
+                        // Only ORGANIZER can delete tournaments
+                        .requestMatchers(
+                                HttpMethod.DELETE,
+                                "/api/tournaments/**"
+                        )
+                        .hasRole("ORGANIZER")
+
+                        // Everything else requires authentication
+                        .anyRequest()
+                        .authenticated()
                 )
+
                 .formLogin(form -> form.disable())
                 .httpBasic(basic -> basic.disable());
 
@@ -77,16 +99,5 @@ public class SecurityConfig {
         );
 
         return http.build();
-    }
-    @Bean
-    public CommandLineRunner generatePasswordHash(
-            PasswordEncoder passwordEncoder) {
-
-        return args -> {
-            System.out.println(
-                    "BCrypt hash: " +
-                            passwordEncoder.encode("password@123")
-            );
-        };
     }
 }
